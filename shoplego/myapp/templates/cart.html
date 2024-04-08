@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEGO Store</title>
+  {% load static %}
+  <link rel="shortcut icon" type="image/png" href="{% static 'img/logo.png' %}"/>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    #fixed-cart {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-top: 1px solid #dee2e6;
+    }
+  </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">LEGO Store</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'about_us' %}">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'Personal_infor' %}">Profile</span></a>
+                    </li>
+                    {% if user.position|stringformat:"s" == "admin" %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Product
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'add_product' %}">Add New Product</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'product' %}">Management product</a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cart' %}">Cart <span class="badge bg-danger">{{ count }}</span></a>
+                    </li>
+                </ul>
+                {% if user %}
+                    <!-- Nếu có người dùng đăng nhập -->
+                    <!-- Các phần tử HTML cho người dùng đã đăng nhập -->
+                    <ul class="navbar-nav ">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">Đăng xuất</a>
+                        </li>
+                    </ul>
+                {% else %}
+                    <!-- Nếu không có người dùng đăng nhập -->
+                    <ul class="navbar-nav ">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Login/ Signup</a>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+  
+    {% if messages %}
+        {% for message in messages %}
+            <div class="modal fade" id="exampleModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Notification</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            {{ message }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+  <!-- Product Section -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="d-flex justify-content-center">
+                <h2>CART</h2>
+            </div>
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-10">
+                        <div class="row border-bottom pb-3">
+                            <div class="col-3 d-flex align-items-center">
+                                <input type="checkbox" id="selectAll">
+                                <p class="m-0 ms-2">Product</p>
+                            </div>
+                            <div class="col-3 text-end">
+                                <p class="m-0">Price</p>
+                            </div>
+                            <div class="col-3 text-center">
+                                <p class="m-0">Quantity</p>
+                            </div>
+                            <div class="col-3 text-end">
+                                <p class="m-0">Operation</p>
+                            </div>
+                        </div>
+                        {% for product in products %}
+                            <div class="row border-bottom py-3 align-items-center">
+                                <div class="col-3 d-flex align-items-center">
+                                    <input type="checkbox" class="productCheckbox" data-price="{{ product.totalprice }}" value="{{ product.id_product }}">
+                                    <div class="d-inline">
+                                        <img src="{{ product.img_product.url }}" class="img-fluid image-fit ms-2 me-3" alt="LEGO Product">
+                                        <p class="m-0">{{ product.description }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-3 text-end">
+                                    <p class="m-0 price">$<span id="total{{ product.id_product }}" data-value="{{ product.price }}">{{ product.totalprice }}</span></p>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <form method="post" action="{% url 'update_quantity_cart' pk=product.id_product %}" class="ms-3 d-flex">
+                                        <div class="justify-content-end">
+                                            <div class="input-group w-50 mx-auto">
+                                                <button class="btn btn-outline-secondary minusBtn" type="button" data-id="{{ product.id_product }}">-</button>
+                                                <input type="text" name="number_of_product" class="form-control text-center quantityInput" data-id="{{ product.id_product }}" value="{{ product.number_of_product }}" readonly>
+                                                <button class="btn btn-outline-secondary plusBtn" type="button" data-id="{{ product.id_product }}">+</button>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button type="submit" class="btn btn-secondary">Update</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="col-2">
+                                    <form method="post" action="{% url 'delete_cart' pk=product.id_product %}" class="ms-3">
+                                        {% csrf_token %}
+                                        <div class="text-end">
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tương tự cho các sản phẩm khác -->
+        </div>
+    </div>
+
+  <!-- Fixed Cart Section -->
+    <div id="fixed-cart">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h4>Total Price: <span id="totalPrice">$0</span></h4>
+                </div>
+                <div class="col text-end">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal1">Buy Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <!-- Footer -->
+    <footer class="bg-light text-center text-lg-start mt-5">
+        <div class="text-center p-3">
+        © 2024 ABSN LEGO Store
+        </div>
+    </footer>
+    <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Pay</h1>
+                </div>
+                <div class="modal-body">
+                    
+                </div>
+                <div class="modal-footer">
+                    <form id="buyNowForm" method="post" action="{% url 'buy_now' %}">
+                        {% csrf_token %}
+                        <input type="hidden" id="selectedProducts" name="selected_products" value="">
+                        <button type="submit" id="buyNowButton" class="btn btn-primary">Buy</button>
+                    </form>
+                </div>  
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('buyNowButton').addEventListener('click', function() {
+            var modalElement = document.getElementById('exampleModal');
+            var modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        });
+        window.addEventListener('DOMContentLoaded', function() {
+            var modalElement = document.getElementById('exampleModal');
+            var modal = new bootstrap.Modal(modalElement);
+                if (modalElement) {
+                    modal.show();
+                }
+            });
+
+        // Update total price when page loads
+        updateTotalPrice();
+
+        // Update total price when any product checkbox is changed
+        document.querySelectorAll('.productCheckbox').forEach(function(checkbox) {
+          checkbox.addEventListener('change', updateTotalPrice);
+        });
+
+        document.querySelectorAll('.plusBtn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var productId = this.getAttribute('data-id');
+                var input = document.querySelector('.quantityInput[data-id="' + productId + '"]');
+                var value = parseInt(input.value);
+                input.value = value + 1;
+                updatePrice(productId);
+                updateTotalPrice();
+            });
+        });
+
+        document.querySelectorAll('.minusBtn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var productId = this.getAttribute('data-id');
+                var input = document.querySelector('.quantityInput[data-id="' + productId + '"]');
+                var value = parseInt(input.value);
+                if (value > 1) {
+                    input.value = value - 1;
+                    updatePrice(productId);
+                    updateTotalPrice();
+                }
+            });
+        });
+        document.getElementById('selectAll').addEventListener('change', function() {
+            var selectAllCheckbox = this;
+            var productCheckboxes = document.querySelectorAll('.productCheckbox');
+            productCheckboxes.forEach(function(checkbox) {
+            checkbox.checked = selectAllCheckbox.checked;
+            });
+            updateTotalPrice();
+        });
+  
+        function updatePrice(productId) {
+            var priceElement = document.getElementById("total" + productId);
+            var currentValue = parseFloat(priceElement.getAttribute('data-value'));
+            var noTickets = parseFloat(document.querySelector('.quantityInput[data-id="' + productId + '"]').value);
+            var total = currentValue * noTickets;
+            
+            if (!isNaN(total)) {
+                priceElement.innerText = total;
+            }
+        }
+
+        function updateTotalPrice() {
+          var totalPrice = 0;
+          document.querySelectorAll('.productCheckbox').forEach(function(checkbox) {
+            if (checkbox.checked) {
+                
+              totalPrice += parseFloat(checkbox.getAttribute('data-price'));
+            }
+          });
+          document.getElementById('totalPrice').innerText = '$' + totalPrice.toFixed(2);
+        }
+        document.getElementById('buyNowButton').addEventListener('click', function() {
+            var selectedProducts = document.querySelectorAll('.productCheckbox:checked');
+            var selectedProductIds = Array.from(selectedProducts).map(function(product) {
+                return product.value;
+            });
+            
+            document.getElementById('selectedProducts').value = selectedProductIds.join(',');
+            document.getElementById('buyNowForm').submit();
+        });
+    </script>
+</body>
+</html>
