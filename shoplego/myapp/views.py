@@ -139,7 +139,7 @@ class ProductmanageView(APIView):
         if int(products.quantity) <= 0:
             messages.error(request, 'Invalid quantity.')
             return redirect('product_edit', pk=pk)
-        products.save();
+        products.save()
         messages.success(request, 'Update product successfully.')
         return redirect('product')
 
@@ -280,7 +280,6 @@ class SignupView(APIView):
         if user:
             messages.success(request, 'Email already exists.')
             return redirect('signup')
-
         else:
             # Nếu email không tồn tại, kiểm tra ngày sinh
             dob = datetime.strptime(data['date_of_birth'], '%Y-%m-%d')
@@ -289,8 +288,6 @@ class SignupView(APIView):
                 # Nếu ngày sinh lớn hơn năm hiện tại, hiển thị thông báo lỗi
                 messages.success(request, 'Invalid date of birth.')
                 return redirect('signup')
-
-            
             # Tiếp tục xử lý nếu ngày sinh hợp lệ
             raw_password = request.POST.get('password')
             hashed_password = bcrypt.hashpw(raw_password.encode('utf-8'), bcrypt.gensalt())
@@ -428,3 +425,33 @@ class Personal_infotmationView(APIView):
         else:
             messages.error(request, 'You are not logged in.')
             return redirect('login')
+
+class HistoryView(APIView):
+    def get(self, request, format=None):
+        id_user = request.session.get('id_user')
+        carts = None
+        user = None
+        products = []
+        count = 0
+        user = User.objects.get(id_user=id_user)
+        carts = Cart.objects.filter(id_user=id_user)
+        historys = History.objects.filter(id_user=id_user)
+        for history in historys:
+            product = history.id_product
+            price = int(product.price)*int(history.number_of_product)
+            # product = Product.objects.get(id_product=id)
+            products.append({
+                'id_product': product.id_product,
+                'totalprice': price,
+                'img_product': product.img_product,
+                'number_of_product': history.number_of_product,
+                'purchase_date': history.purchase_date,
+            })
+        count = carts.count()
+        return render(request, 'history.html', {'historys': historys, 'user': user, 'products':products, 'count':count})
+    def post(self, request, pk, *args, **kwargs):
+        id_user = request.session.get('id_user')
+        history = History.objects.filter(id_product=pk, id_user=id_user).first()
+        history.delete()
+        messages.success(request, 'History purchase deleted successfully.')
+        return redirect('history')

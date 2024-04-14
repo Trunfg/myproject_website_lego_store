@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import HomeView, Product_detailView, AddView, InforView, ContactView, LoginView, SignupView, CartView, LogoutView, ProductView, Personal_infotmationView, ProductmanageView, ProductdeleteView, CartupdateView, buyView
+from .views import HomeView, Product_detailView, AddView, InforView, ContactView, LoginView, SignupView, CartView, LogoutView, ProductView, Personal_infotmationView, ProductmanageView, ProductdeleteView, CartupdateView, buyView, HistoryView
 
 urlpatterns = [
     # trang chủ
@@ -46,5 +46,8 @@ urlpatterns = [
 
     path('Personal_information/', Personal_infotmationView.as_view(), name='Personal_infor'),
     path('Personal_information/update_data', Personal_infotmationView.as_view(), name='update_data'),
+
+    path('History/', HistoryView.as_view(), name='history'),
+    path('History/delete/<int:pk>', HistoryView.as_view(), name='delete_history'),
 ]
 

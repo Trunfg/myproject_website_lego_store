@@ -33,9 +33,6 @@
                             <a class="nav-link" href="{% url 'login' %}">Contact</a>
                         </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'Personal_infor' %}">Profile</span></a>
-                    </li>
                     {% if user.position|stringformat:"s" == "admin" %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'add_product' %}">Add product</a>
