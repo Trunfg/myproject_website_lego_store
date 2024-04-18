@@ -8,7 +8,7 @@ class User(models.Model):
     date_of_birth = models.DateField()
     password = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20)
-    position = models.CharField(max_length=20, default='khach_hang')  # Thêm trường position và gán giá trị mặc định là 2
+    position = models.CharField(max_length=20, default='khach_hang')
 
 class Product(models.Model):
     id_product = models.AutoField(primary_key=True)  # Trường khóa chính tùy chỉnh

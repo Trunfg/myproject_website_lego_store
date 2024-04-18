@@ -4,7 +4,7 @@ from .models import User, Product, History, Cart, Feedback
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id_user","name_user", "email", "date_of_birth", "password", "phone_number"]
+        fields = ["id_user","name_user", "email", "date_of_birth", "password", "phone_number", "position"]
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:

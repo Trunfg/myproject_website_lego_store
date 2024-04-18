@@ -56,9 +56,7 @@
                     {% endif %}
                 </ul>
                 {% if user %}
-                    <!-- Nếu có người dùng đăng nhập -->
-                    <!-- Các phần tử HTML cho người dùng đã đăng nhập -->
-                    <ul class="navbar-nav ">
+                    <li class="navbar-nav dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="{% static 'img/avatar.jpg' %}" style="height: 50px; width: 50px; border-radius: 50%;">
                         </a>
@@ -74,7 +72,7 @@
                                 <a class="dropdown-item" href="{% url 'logout' %}">Đăng xuất</a>
                             </li>
                         </ul>
-                    </ul>
+                    </li>
                 {% else %}
                     <!-- Nếu không có người dùng đăng nhập -->
                     <ul class="navbar-nav ">

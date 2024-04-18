@@ -204,7 +204,6 @@ class InforView(APIView):
             except User.DoesNotExist:
                 # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
                 pass
-        
         return render(request, 'information_store.html', {'user': user, 'count':count})
 
 # Liên hệ shop
@@ -389,43 +388,27 @@ class Personal_infotmationView(APIView):
             except User.DoesNotExist:
                 # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
                 pass
-        
-        return render(request, 'personal_information.html', {'user': user, 'count':count})
+        date = user.date_of_birth.strftime('%Y-%m-%d') if user.date_of_birth else ''
+        return render(request, 'personal_information.html', {'user': user, 'count':count, 'date':date})
 
     def post(self, request, *args, **kwargs):
         id_user = request.session.get('id_user')
-        if id_user:
-            user = User.objects.get(id_user=id_user)
-            data = request.data  # Sử dụng request.data để lấy dữ liệu từ yêu cầu PUT
-            
-            # Kiểm tra ngày sinh hợp lệ
-            dob = datetime.strptime(data.get('date_of_birth'), '%Y-%m-%d')
-            current_year = datetime.now().year
-            if dob.year > current_year:
-                messages.error(request, 'Invalid date of birth.')
-                return redirect('Personal_infor')
-            
-            # Cập nhật thông tin người dùng
-            user.name_user = data.get('name_user')
-            user.email = data.get('email')
-            user.date_of_birth = data.get('date_of_birth')
-            user.phone_number = data.get('phone_number')
-            
-            # Kiểm tra xem có thay đổi mật khẩu không
-            raw_password = data.get('password')
-            if raw_password:
-                # Mã hóa mật khẩu mới
-                hashed_password = make_password(raw_password)
-                user.password = hashed_password
-            
-            # Lưu thông tin người dùng cập nhật vào cơ sở dữ liệu
-            user.save()
-            messages.success(request, 'Profile updated successfully.')
+        user = User.objects.get(id_user=id_user)
+        data = request.data
+        dob = datetime.strptime(data.get('date_of_birth'), '%Y-%m-%d')
+        current_year = datetime.now().year
+        if dob.year > current_year:
+            messages.error(request, 'Invalid date of birth.')
             return redirect('Personal_infor')
-        else:
-            messages.error(request, 'You are not logged in.')
-            return redirect('login')
+        user.name_user = data.get('name_user')
+        user.email = data.get('email')
+        user.date_of_birth = data.get('date_of_birth')
+        user.phone_number = data.get('phone_number')
+        user.save()
+        messages.success(request, 'Profile updated successfully.')
+        return redirect('Personal_infor')
 
+# Lịch sử giao dịch
 class HistoryView(APIView):
     def get(self, request, format=None):
         id_user = request.session.get('id_user')
@@ -455,3 +438,61 @@ class HistoryView(APIView):
         history.delete()
         messages.success(request, 'History purchase deleted successfully.')
         return redirect('history')
+
+# Đổi mật khẩu
+class ChangePasswordView(APIView):
+    def get(self, request, format=None):
+        id_user = request.session.get('id_user')
+        count = 0
+        user = User.objects.get(id_user=id_user)
+        carts = Cart.objects.filter(id_user=id_user)
+        count = carts.count()
+        return render(request, 'change_password.html', {'user': user, 'count':count})
+    def post(self, request, *args, **kwargs):
+        id_user = request.session.get('id_user')
+        user = User.objects.get(id_user=id_user)
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # So sánh mật khẩu cũ nhập từ người dùng với mật khẩu đã được mã hóa trong cơ sở dữ liệu
+        if bcrypt.checkpw(current_password.encode('utf-8'), user.password.encode('utf-8')):
+            if new_password == confirm_password:
+                # Mã hóa mật khẩu mới và cập nhật vào cơ sở dữ liệu
+                hashed_new_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+                user.password = hashed_new_password.decode('utf-8')
+                user.save()
+                messages.success(request, 'Change password successfully.')
+                return redirect('Personal_infor')
+            else:
+                messages.error(request, 'Re-entered password is incorrect.')
+        else:
+            messages.error(request, 'Current password is incorrect.')
+
+        return redirect('change_password')
+
+# Quên mật khẩu
+class ForgotPasswordView(APIView):
+    def get(self, request, format=None):
+        return render(request, 'forgot_password.html')
+    def post(self, request, *args, **kwargs):
+        email = request.POST.get('email')
+        phone_number = request.POST.get('phone_number')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        # So sánh mật khẩu cũ nhập từ người dùng với mật khẩu đã được mã hóa trong cơ sở dữ liệu
+        if email and phone_number and new_password and confirm_password:
+            user = User.objects.filter(email=email, phone_number=phone_number).first()
+            if user:
+                if new_password==confirm_password:
+                    hashed_new_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+                    user.password = hashed_new_password.decode('utf-8')
+                    user.save()
+                    messages.success(request, 'New password has been updated.')
+                    return redirect('login')
+                messages.success(request, 'Re-entered password is incorrect.')
+                return redirect('forgot_password')
+            messages.success(request, 'Invalid email or phone number.')
+            return redirect('forgot_password')
+        messages.success(request, 'Enter complete information.')
+        return redirect('forgot_password')

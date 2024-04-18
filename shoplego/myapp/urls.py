@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import HomeView, Product_detailView, AddView, InforView, ContactView, LoginView, SignupView, CartView, LogoutView, ProductView, Personal_infotmationView, ProductmanageView, ProductdeleteView, CartupdateView, buyView, HistoryView
+from .views import HomeView, Product_detailView, AddView, InforView, ContactView, LoginView, SignupView, CartView, LogoutView, ProductView, Personal_infotmationView, ProductmanageView, ProductdeleteView, CartupdateView, buyView, HistoryView, ChangePasswordView, ForgotPasswordView
 
 urlpatterns = [
     # trang chủ
@@ -14,6 +14,7 @@ urlpatterns = [
     path('product/edit_product/<int:pk>/', ProductmanageView.as_view(), name='product_edit'),
     path('product/edit_product/update_data_product/<int:pk>/', ProductmanageView.as_view(), name='update_data_product'),
     path('product/delete_product/<int:pk>/', ProductdeleteView.as_view(), name='product_delete'),
+
     # thêm sản phẩm
     path('add_product/', AddView.as_view(), name='add_product'),
     path('add_product/add/', AddView.as_view(), name='add'),
@@ -41,13 +42,23 @@ urlpatterns = [
     path('cart/update_quantity/<int:pk>/', CartupdateView.as_view(), name='update_quantity_cart'),
     path('cart/Buy/', buyView.as_view(), name='buy_now'),
     
+    # đăng xuất
+    path('logout/', LogoutView.as_view(), name='logout'),
 
-    path('log_out/', LogoutView.as_view(), name='logout'),
-
+    # Thông tin cá nhân
     path('Personal_information/', Personal_infotmationView.as_view(), name='Personal_infor'),
-    path('Personal_information/update_data', Personal_infotmationView.as_view(), name='update_data'),
+    path('Personal_information/update_data/', Personal_infotmationView.as_view(), name='update_data'),
 
+    # lịch sử giao dịch
     path('History/', HistoryView.as_view(), name='history'),
-    path('History/delete/<int:pk>', HistoryView.as_view(), name='delete_history'),
+    path('History/delete/<int:pk>/', HistoryView.as_view(), name='delete_history'),
+
+    # Đổi mật khẩu
+    path('Change-password/', ChangePasswordView.as_view(), name='change_password'),
+    path('Change-password/save/', ChangePasswordView.as_view(), name='change_password_save'),
+
+    # Quên mật khẩu
+    path('Forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
+    path('Forgot-password/', ForgotPasswordView.as_view(), name='forgot_password_confirm'),
 ]
 

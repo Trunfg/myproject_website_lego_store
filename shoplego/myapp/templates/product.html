@@ -35,13 +35,17 @@
                         </li>
                     {% endif %}
                     {% if user.position|stringformat:"s" == "admin" %}
-                        <li class="nav-item">
+                        <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Product
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{% url 'add_product' %}">Add New Product</a></li>
-                                <li><a class="dropdown-item" href="{% url 'product' %}">Management product</a></li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'add_product' %}">Add New Product</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'product' %}">Management product</a>
+                                </li>
                             </ul>
                         </li>
                     {% endif %}
@@ -59,7 +63,7 @@
                 {% if user %}
                     <!-- Nếu có người dùng đăng nhập -->
                     <!-- Các phần tử HTML cho người dùng đã đăng nhập -->
-                    <ul class="navbar-nav ">
+                    <ul class="navbar-nav dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="{% static 'img/avatar.jpg' %}" style="height: 50px; width: 50px; border-radius: 50%;">
                         </a>
