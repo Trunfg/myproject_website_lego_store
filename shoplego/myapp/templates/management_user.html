@@ -42,7 +42,6 @@
                                 </li>
                             </ul>
                         </li>
-                        
                     {% endif %}
                     {% if user.position|stringformat:"s" == "admin" %}
                         <li class="nav-item">
@@ -60,7 +59,7 @@
                     {% endif %}
                 </ul>
                 {% if user %}
-                    <ul class="navbar-nav dropdown">
+                    <li class="navbar-nav dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="{% static 'img/avatar.jpg' %}" style="height: 50px; width: 50px; border-radius: 50%;">
                         </a>
@@ -76,7 +75,7 @@
                                 <a class="dropdown-item" href="{% url 'logout' %}">Đăng xuất</a>
                             </li>
                         </ul>
-                    </ul>
+                    </li>
                 {% else %}
                     <!-- Nếu không có người dùng đăng nhập -->
                     <ul class="navbar-nav ">
@@ -88,7 +87,6 @@
             </div>
         </div>
     </nav>
-  
     {% if messages %}
         {% for message in messages %}
             <div class="modal fade" id="exampleModal" tabindex="-1">
@@ -109,47 +107,73 @@
             </div>
         {% endfor %}
     {% endif %}
-  <!-- Product Section -->
+    <!-- Product Section -->
     <div class="container mt-5">
-        <div class="row d-flex justify-content-center">
-            <div class="col-md-6">
-                <div class="card-body d-inline">
-                    <h5 class="card-title pb-4 border-bottom">Write review</h5>
-                    <form method="post" action="{% url 'feedback' %}" class="card-body mt-3">
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <input class="card-text form-control rounded-0" name="name_customer" type="text" placeholder="Your name">
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <input class="card-text form-control rounded-0" name="email" type="text" placeholder="Your email">
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <input class="card-text form-control rounded-0" name="comment" type="text" placeholder="Write a comment">
-                            </div>
-                            <div class="col-md-12">
-                                <button type="submit" class="btn btn-primary">Submit comments</button>
+        <div class="row card-wrapper">
+            {% for alluser in allusers %}
+                <div class="col-md-6 col-lg-3 mt-4 d-flex justify-content-center">
+                    <div class="card h-100 p-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Name: {{ alluser.name_user }}</h5>
+                            <p class="card-text">Email: {{ alluser.email }}</p>
+                            <p class="card-text">Date of birth: {{ alluser.date_of_birth }}</p>
+                            <p class="card-text">Phone number: {{ alluser.phone_number }}</p>
+                            <div class="d-flex">
+                                <form method="post" action="{% url 'set-user-admin' pk=alluser.id_user %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">Set as admin</button>
+                                </form>
+                                <form method="post" action="{% url 'delete_user' pk=alluser.id_user %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger ms-3">Delete user</button>
+                                </form>
                             </div>
                         </div>
-                    </form>
-                </div>
-                
-            </div>
-            <div class="col-md-4">
-                <div class="card-body d-inline">
-                    <h5 class="card-title pb-4 border-bottom">We are here</h5>
-                    <div class="row mt-3">
-                        <ul>
-                            <li>330 Định Công, Hoàng Mai, Hà Nội</li>
-                            <li>buitruongar13@gmail.com</li>
-                            <li>0362685821</li>
-                        </ul>
-                        
                     </div>
                 </div>
-            </div>
-            <!-- Tương tự cho các sản phẩm khác -->
+                {% if forloop.counter|divisibleby:4 and not forloop.last %}
+                    </div><div class="row">
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center mt-5">
+            <ul class="pagination">
+                {% if products.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                    {% if products.number == num %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.paginator.num_pages }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
         </div>
     </div>
+
+
 
   <!-- Footer -->
     <footer class="bg-light text-center text-lg-start mt-5">
