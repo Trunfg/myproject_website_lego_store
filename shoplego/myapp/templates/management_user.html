@@ -107,30 +107,108 @@
             </div>
         {% endfor %}
     {% endif %}
-    <!-- Product Section -->
+    {% comment %} user khach_hang {% endcomment %}
     <div class="container mt-5">
-        <div class="row card-wrapper">
+        <div class="row text-center">
+            <h2>User account</h2>
+        </div>
+        <div class="row card-wrapper pb-3">
             {% for alluser in allusers %}
-                <div class="col-md-6 col-lg-3 mt-4 d-flex justify-content-center">
-                    <div class="card h-100 p-3">
-                        <div class="card-body">
-                            <h5 class="card-title">Name: {{ alluser.name_user }}</h5>
-                            <p class="card-text">Email: {{ alluser.email }}</p>
-                            <p class="card-text">Date of birth: {{ alluser.date_of_birth }}</p>
-                            <p class="card-text">Phone number: {{ alluser.phone_number }}</p>
-                            <div class="d-flex">
-                                <form method="post" action="{% url 'set-user-admin' pk=alluser.id_user %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-success">Set as admin</button>
-                                </form>
-                                <form method="post" action="{% url 'delete_user' pk=alluser.id_user %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger ms-3">Delete user</button>
-                                </form>
+                {% if alluser.position|stringformat:"s" == "khach_hang" %}
+                    <div class="col-md-6 col-lg-3 mt-4 d-flex justify-content-center">
+                        <div class="card h-100 p-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Name: {{ alluser.name_user }}</h5>
+                                <p class="card-text">Email: {{ alluser.email }}</p>
+                                <p class="card-text">Date of birth: {{ alluser.date_of_birth }}</p>
+                                <p class="card-text">Phone number: {{ alluser.phone_number }}</p>
+                                <div class="d-flex">
+                                    <button class="btn btn-success" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+                                        Set as admin
+                                    </button>
+                                    <form method="post" action="{% url 'delete_user' pk=alluser.id_user %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger ms-3">Delete user</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                    {% comment %} thông báo xác nhận set admin account {% endcomment %}
+                    <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you set this account as an admin account?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <form method="post" action="{% url 'set-user-admin' pk=alluser.id_user %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">OK</button>
+                                </form>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if forloop.counter|divisibleby:4 and not forloop.last %}
+                    </div><div class="row">
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% comment %} user admin {% endcomment %}
+        <div class="row pt-3 text-center" style="border-top: 1px solid black;">
+            <h2>User admin</h2>
+        </div>
+        <div class="row card-wrapper">
+            {% for alluser in allusers %}
+                {% if alluser.position|stringformat:"s" == "admin" %}
+                    <div class="col-md-6 col-lg-3 mt-4 d-flex justify-content-center">
+                        <div class="card h-100 p-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Name: {{ alluser.name_user }}</h5>
+                                <p class="card-text">Email: {{ alluser.email }}</p>
+                                <p class="card-text">Date of birth: {{ alluser.date_of_birth }}</p>
+                                <p class="card-text">Phone number: {{ alluser.phone_number }}</p>
+                                <div class="d-flex">
+                                    <button class="btn btn-primary" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal2">
+                                        Set as customer
+                                    </button>
+                                    <form method="post" action="{% url 'delete_user' pk=alluser.id_user %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger ms-3">Delete user</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% comment %} thông báo xác nhận set client account {% endcomment %}
+                    <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure to set this account as a customer account?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <form method="post" action="{% url 'set-user-customer' pk=alluser.id_user %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary">OK</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
                 {% if forloop.counter|divisibleby:4 and not forloop.last %}
                     </div><div class="row">
                 {% endif %}
@@ -172,9 +250,7 @@
             </ul>
         </div>
     </div>
-
-
-
+    
   <!-- Footer -->
     <footer class="bg-light text-center text-lg-start mt-5">
         <div class="text-center p-3">

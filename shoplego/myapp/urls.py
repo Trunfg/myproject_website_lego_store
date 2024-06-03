@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import HomeView, Product_detailView, AddView, InforView, ContactView, LoginView, SignupView, CartView, LogoutView, ProductView, Personal_infotmationView, ProductmanageView, ProductdeleteView, CartupdateView, buyView, HistoryView, ChangePasswordView, ForgotPasswordView, manageUserView, deleteUserView
+from .views import HomeView, Product_detailView, AddView, InforView, ContactView, LoginView, SignupView, CartView, LogoutView, ProductView, Personal_infotmationView, ProductmanageView, ProductdeleteView, CartupdateView, buyView, HistoryView, ChangePasswordView, ForgotPasswordView, manageUserView, deleteUserView, manageUserCustomerView
 
 urlpatterns = [
     # trang chủ
@@ -64,6 +64,8 @@ urlpatterns = [
     # quản lý user
     path('management-user/', manageUserView.as_view(), name='management_user'),
     path('management-user/<int:pk>', manageUserView.as_view(), name='set-user-admin'),
+
+    path('management-user-customer/<int:pk>', manageUserCustomerView.as_view(), name='set-user-customer'),
 
     path('management-user/<int:pk>', deleteUserView.as_view(), name='delete_user'),
 ]

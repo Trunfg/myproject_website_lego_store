@@ -159,7 +159,7 @@
                                             </div>
                                         </div>
                                         <div class="text-end">
-                                            <button type="submit" class="btn btn-secondary">Update</button>
+                                            <button type="submit" class="btn btn-primary">Update</button>
                                         </div>
                                     </form>
                                 </div>
@@ -190,7 +190,7 @@
                     <h4>Total Price: <span id="totalPrice">$0</span></h4>
                 </div>
                 <div class="col text-end">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal1">Buy Now</button>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal1">Buy Now</button>
                 </div>
             </div>
         </div>
@@ -208,14 +208,14 @@
                 <div class="modal-header">
                     <h1 class="modal-title fs-5" id="exampleModalLabel">Pay</h1>
                 </div>
-                <div class="modal-body">
-                    
+                <div class="modal-body text-center">
+                    <img src="{% static 'img/img_buynow.png' %}" style="height: 300px; width: 300px;" alt="LEGO Product">
                 </div>
                 <div class="modal-footer">
                     <form id="buyNowForm" method="post" action="{% url 'buy_now' %}">
                         {% csrf_token %}
                         <input type="hidden" id="selectedProducts" name="selected_products" value="">
-                        <button type="submit" id="buyNowButton" class="btn btn-primary">Buy</button>
+                        <button type="submit" id="buyNowButton" class="btn btn-success">Buy</button>
                     </form>
                 </div>  
             </div>

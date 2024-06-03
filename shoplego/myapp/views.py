@@ -1,15 +1,14 @@
 from pyexpat.errors import messages
+from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib import messages
 from django.urls import reverse
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import  redirect, render
 from rest_framework.views import APIView
 from .serializers import UserSerializer, ProductSerializer, CartSerializer, HistorySerializer, FeedbackSerializer
 from .models import User, Product, Cart, History, Feedback
 from datetime import datetime
-from django.contrib.auth.hashers import check_password
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth.hashers import make_password
 import bcrypt  # Đảm bảo bạn đã cài đặt thư viện bcrypt
 from rest_framework_simplejwt.tokens import AccessToken
 from .utils import CustomPayload
@@ -20,7 +19,6 @@ class HomeView(APIView):
     def get(self, request, format=None):
         token = request.session.get('jwt_token')
         products = Product.objects.all()
-        # id_user = request.session.get('id_user')
         user = None
         count = 0
         if token:
@@ -29,11 +27,21 @@ class HomeView(APIView):
                 id_user = decoded_token.payload['id_user']
                 user = User.objects.get(id_user=id_user)
                 count = Cart.objects.filter(id_user=id_user).count()
-            except User.DoesNotExist:
-                # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
-                pass
-        
-        # Số lượng sản phẩm trên mỗi trang
+                # if datetime.fromtimestamp(decoded_token['exp']) < datetime.now():
+                #     user = None
+                #     return render(request, 'home.html', {'products': products, 'user': user, 'count':count})
+            except (User.DoesNotExist, TokenError):
+                user = None
+                items_per_page = 8
+                paginator = Paginator(products, items_per_page)
+                page_number = request.GET.get('page')
+                try:
+                    products = paginator.page(page_number)
+                except PageNotAnInteger:
+                    products = paginator.page(1)
+                except EmptyPage:
+                    products = paginator.page(paginator.num_pages)
+                return render(request, 'home.html', {'products': products, 'user': user, 'count':count})
         items_per_page = 8
         paginator = Paginator(products, items_per_page)
 
@@ -55,16 +63,16 @@ class Product_detailView(APIView):
         token = request.session.get('jwt_token')
         user = None
         count = 0
+        product = Product.objects.get(id_product=pk)
         if token:
             try:
                 decoded_token = AccessToken(token)
                 id_user = decoded_token.payload['id_user']
                 user = User.objects.get(id_user=id_user)
                 count = Cart.objects.filter(id_user=id_user).count()
-            except User.DoesNotExist:
-                # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
-                pass
-        product = Product.objects.get(id_product=pk)
+            except (User.DoesNotExist, TokenError):
+                user = None
+                return render(request, 'product_detail.html', {'user': user, 'count': count, 'product': product})
         return render(request, 'product_detail.html', {'user': user, 'count': count, 'product': product})
     def post(self, request, pk):
         data = {
@@ -99,9 +107,18 @@ class ProductView(APIView):
                 id_user = decoded_token.payload['id_user']
                 user = User.objects.get(id_user=id_user)
                 count = Cart.objects.filter(id_user=id_user).count()
-            except User.DoesNotExist:
-                # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
-                pass
+            except (User.DoesNotExist, TokenError):
+                user = None
+                items_per_page = 8
+                paginator = Paginator(products, items_per_page)
+                page_number = request.GET.get('page')
+                try:
+                    products = paginator.page(page_number)
+                except PageNotAnInteger:
+                    products = paginator.page(1)
+                except EmptyPage:
+                    products = paginator.page(paginator.num_pages)
+                return render(request, 'product.html', {'products': products, 'user': user, 'count':count})
         
         # Số lượng sản phẩm trên mỗi trang
         items_per_page = 8
@@ -131,9 +148,9 @@ class ProductmanageView(APIView):
                 id_user = decoded_token.payload['id_user']
                 user = User.objects.get(id_user=id_user)
                 count = Cart.objects.filter(id_user=id_user).count()
-            except User.DoesNotExist:
-                # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
-                pass
+            except (User.DoesNotExist, TokenError):
+                user = None
+                return render(request, 'edit_product.html', {'products': products, 'user': user, 'count':count})
         return render(request, 'edit_product.html', {'products': products, 'user': user, 'count':count})
     def post(self, request, pk, *args, **kwargs):
         products = Product.objects.get(id_product=pk)
@@ -173,10 +190,9 @@ class AddView(APIView):
                 id_user = decoded_token.payload['id_user']
                 user = User.objects.get(id_user=id_user)
                 count = Cart.objects.filter(id_user=id_user).count()
-            except User.DoesNotExist:
-                # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
-                pass
-        
+            except (User.DoesNotExist, TokenError):
+                user = None
+                return render(request, 'addproduct.html', {'user': user, 'count':count})
         return render(request, 'addproduct.html', {'user': user, 'count':count})
     def post(self, request, *args, **kwargs):
         data = {
@@ -207,9 +223,9 @@ class InforView(APIView):
                 id_user = decoded_token.payload['id_user']
                 user = User.objects.get(id_user=id_user)
                 count = Cart.objects.filter(id_user=id_user).count()
-            except User.DoesNotExist:
-                # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
-                pass
+            except (User.DoesNotExist, TokenError):
+                user = None
+                return render(request, 'information_store.html', {'user': user, 'count':count})
         return render(request, 'information_store.html', {'user': user, 'count':count})
 
 # Liên hệ shop
@@ -224,9 +240,9 @@ class ContactView(APIView):
                 id_user = decoded_token.payload['id_user']
                 user = User.objects.get(id_user=id_user)
                 count = Cart.objects.filter(id_user=id_user).count()
-            except User.DoesNotExist:
-                # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
-                pass
+            except (User.DoesNotExist, TokenError):
+                user = None
+                return render(request, 'contact.html', {'user': user, 'count':count})
         return render(request, 'contact.html', {'user': user, 'count':count})
     def post(self, request, *args, **kwargs):
         data = {
@@ -311,10 +327,14 @@ class CartView(APIView):
         user = None
         products = []
         count = 0
-        decoded_token = AccessToken(token)
-        id_user = decoded_token.payload['id_user']
-        user = User.objects.get(id_user=id_user)
-        carts = Cart.objects.filter(id_user=id_user)
+        if token:
+            try:
+                decoded_token = AccessToken(token)
+                id_user = decoded_token.payload['id_user']
+                user = User.objects.get(id_user=id_user)
+                carts = Cart.objects.filter(id_user=id_user)
+            except (User.DoesNotExist, TokenError):
+                return redirect('login')
         for cart in carts:
             product = cart.id_product
             price = int(product.price)*int(cart.number_of_product)
@@ -352,8 +372,13 @@ class CartupdateView(APIView):
 class buyView(APIView):
     def post(self, request, *args, **kwargs):
         token = request.session.get('jwt_token')
-        decoded_token = AccessToken(token)
-        id_user = decoded_token.payload['id_user']
+        id_user = 0
+        if token:
+            try:
+                decoded_token = AccessToken(token)
+                id_user = decoded_token.payload['id_user']
+            except (User.DoesNotExist, TokenError):
+                return redirect('login')
         selected_product_ids = request.POST.get('selected_products').split(',')
         if selected_product_ids==['']:
             messages.success(request, 'You have not selected any products yet.')
@@ -389,8 +414,8 @@ class LogoutView(APIView):
                 decoded_token = AccessToken(token)
                 decoded_token.payload['exp'] = datetime.now()
                 del request.session['jwt_token']
-            except:
-                pass
+            except (User.DoesNotExist, TokenError):
+                return redirect('login')
         return redirect('login')
     
 # thông tin cá nhân
@@ -405,9 +430,8 @@ class Personal_infotmationView(APIView):
                 id_user = decoded_token.payload['id_user']
                 user = User.objects.get(id_user=id_user)
                 count = Cart.objects.filter(id_user=id_user).count()
-            except User.DoesNotExist:
-                # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
-                pass
+            except (User.DoesNotExist, TokenError):
+                return redirect('login')
         date = user.date_of_birth.strftime('%Y-%m-%d') if user.date_of_birth else ''
         return render(request, 'personal_information.html', {'user': user, 'count':count, 'date':date})
 
@@ -434,15 +458,20 @@ class Personal_infotmationView(APIView):
 class HistoryView(APIView):
     def get(self, request, format=None):
         token = request.session.get('jwt_token')
-        decoded_token = AccessToken(token)
-        id_user = decoded_token.payload['id_user']
         carts = None
         user = None
+        historys = None
         products = []
         count = 0
-        user = User.objects.get(id_user=id_user)
-        carts = Cart.objects.filter(id_user=id_user)
-        historys = History.objects.filter(id_user=id_user)
+        if token:
+            try:
+                decoded_token = AccessToken(token)
+                id_user = decoded_token.payload['id_user']
+                user = User.objects.get(id_user=id_user)
+                carts = Cart.objects.filter(id_user=id_user)
+                historys = History.objects.filter(id_user=id_user)
+            except (User.DoesNotExist, TokenError):
+                return redirect('login')
         for history in historys:
             product = history.id_product
             price = int(product.price)*int(history.number_of_product)
@@ -469,11 +498,17 @@ class HistoryView(APIView):
 class ChangePasswordView(APIView):
     def get(self, request, format=None):
         token = request.session.get('jwt_token')
-        decoded_token = AccessToken(token)
-        id_user = decoded_token.payload['id_user']
+        user = None
+        carts = None
+        if token:
+            try:
+                decoded_token = AccessToken(token)
+                id_user = decoded_token.payload['id_user']
+                user = User.objects.get(id_user=id_user)
+                carts = Cart.objects.filter(id_user=id_user)
+            except (User.DoesNotExist, TokenError):
+                return redirect('login')
         count = 0
-        user = User.objects.get(id_user=id_user)
-        carts = Cart.objects.filter(id_user=id_user)
         count = carts.count()
         return render(request, 'change_password.html', {'user': user, 'count':count})
     def post(self, request, *args, **kwargs):
@@ -531,33 +566,34 @@ class ForgotPasswordView(APIView):
 class manageUserView(APIView):
     def get(self, request, format=None):
         token = request.session.get('jwt_token')
-        decoded_token = AccessToken(token)
-        id_user = decoded_token.payload['id_user']
-        alluser = User.objects.exclude(id_user=id_user)
+        alluser = None
+        # alluser = User.objects.exclude(id_user=id_user).filter(position='khach_hang')
         user = None
         count = 0
         if token:
             try:
+                decoded_token = AccessToken(token)
+                id_user = decoded_token.payload['id_user']
                 user = User.objects.get(id_user=id_user)
-                count = Cart.objects.filter(id_user=id_user).count()
-            except User.DoesNotExist:
-                # Xử lý trường hợp nếu không tìm thấy người dùng với id_user cung cấp
-                pass
-        items_per_page = 8
-        paginator = Paginator(alluser, items_per_page)
-        page_number = request.GET.get('page')
-        try:
-            alluser = paginator.page(page_number)
-        except PageNotAnInteger:
-            alluser = paginator.page(1)
-        except EmptyPage:
-            alluser = paginator.page(paginator.num_pages)
+                alluser = User.objects.exclude(id_user=id_user)
+                carts = Cart.objects.filter(id_user=id_user)
+                count = carts.count()
+            except (User.DoesNotExist, TokenError):
+                return redirect('login')
         return render(request, 'management_user.html', {'allusers': alluser, 'user': user, 'count':count})
     def post(self, request, pk, *args, **kwargs):
         user = User.objects.get(id_user=pk)
         user.position = "admin"
         user.save()
         messages.success(request, 'Set admin successfully.')
+        return redirect('management_user')
+    
+class manageUserCustomerView(APIView):
+    def post(self, request, pk, *args, **kwargs):
+        user = User.objects.get(id_user=pk)
+        user.position = "khach_hang"
+        user.save()
+        messages.success(request, 'Set customer successfully.')
         return redirect('management_user')
 class deleteUserView(APIView):
     def post(self, request, pk, *args, **kwargs):
